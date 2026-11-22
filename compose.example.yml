@@ -5,6 +5,7 @@ services:
     container_name: grocery-assistant
     build: ./src
     image: grocery-assistant:local
+    pull_policy: build    # never pulled; the nightly "compose pull" skips it
     restart: unless-stopped
     user: "568:568"
     read_only: true
