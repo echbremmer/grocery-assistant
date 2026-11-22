@@ -1,0 +1,29 @@
+# Scheduled queries. Each one runs on its own cron schedule (in the container's
+# TZ, Europe/Amsterdam) and posts to a Mattermost incoming webhook.
+#
+#   name      unique id, used by `grocery-assistant run <name>`
+#   title     heading of the post; {week} is replaced by the ISO week number
+#   store     only "ah" (Albert Heijn) for now
+#   schedule  cron expression: minute hour day month weekday
+#   webhook   name of the webhook; its URL comes from the environment variable
+#             MATTERMOST_WEBHOOK_<NAME IN UPPER CASE> (kept out of git, in .env)
+#   in_store_only  true = only in-store (NATIONAL) bonus, no online-only deals
+#   categories     AH top-level category: id (taxonomyId), main_category (the
+#                  API's mainCategory value, used to drop neighbouring products)
+#                  and label (heading in the post). Order = order in the post.
+
+queries:
+  - name: ah-meat-fish-meals
+    title: "AH bonus week {week}: meat, cold cuts, fish & ready meals"
+    store: ah
+    schedule: "0 8 * * 1"   # Monday 08:00, when the new bonus week starts
+    webhook: supermarket_prices
+    in_store_only: true
+    categories:
+      - { id: 9344, main_category: "Vlees", label: "Meat" }
+      - { id: 5481, main_category: "Vleeswaren", label: "Cold cuts" }
+      - { id: 1651, main_category: "Vis", label: "Fish" }
+      - { id: 1301, main_category: "Maaltijden, salades", label: "Ready meals & salads" }
+
+# Other AH top-level category ids found so far:
+#   6401 Groente, aardappelen · 20885 Fruit, verse sappen · 1043 Koffie, thee · 1192 Kaas

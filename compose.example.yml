@@ -1,0 +1,28 @@
+# Example stack. The live copy is /mnt/stacks/grocery-assistant/docker-compose.yml,
+# with this repo cloned into ./src next to it.
+services:
+  grocery-assistant:
+    container_name: grocery-assistant
+    build: ./src
+    image: grocery-assistant:local
+    restart: unless-stopped
+    user: "568:568"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    env_file:
+      - ../defaults.env   # TZ
+      - .env              # MATTERMOST_WEBHOOK_<NAME>=http://mattermost:8065/hooks/<id>
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - gateway-net       # to reach the mattermost container directly
+
+networks:
+  gateway-net:
+    external: true
