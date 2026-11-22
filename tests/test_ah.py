@@ -61,7 +61,7 @@ def test_dry_run_does_not_post(query, monkeypatch, capsys):
     posts = run(query, day=date(2026, 11, 23), dry_run=True,
                 client=AHClient(transport=ah_transport(), pause=0))
     assert posts[0].startswith("#### AH bonus week 48:")
-    assert "3 in-store offers, valid until Sun 29 Nov." in posts[0]
+    assert "3 offers, valid until Sun 29 Nov." in posts[0]
     assert "**VOOR 3.49** (€5,49 → €3,49)" in posts[0]
     assert "https://www.ah.nl/producten/product/wi" in capsys.readouterr().out
 
@@ -100,7 +100,7 @@ def test_split_respects_limit():
 
 def test_empty_result():
     posts = build_posts("AH bonus week {week}", [("Meat", [])], date(2026, 11, 23))
-    assert posts == ["#### AH bonus week 48\nNo bonus offers found."]
+    assert posts == ["#### AH bonus week 48\nNo offers found."]
 
 
 def test_euro():

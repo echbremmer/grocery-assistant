@@ -1,9 +1,12 @@
 # grocery-assistant
 
-Posts supermarket bonus offers to Mattermost on a schedule. The first and only
-query so far: every Monday at 08:00, this week's **in-store Albert Heijn bonus**
-for meat, cold cuts, fish and ready meals goes to the channel
-**Supermarket prices**.
+Posts supermarket offers to Mattermost on a schedule. Every Monday, the
+week's **in-store offers** for meat, cold cuts, fish and ready meals go to the
+channel **Supermarket prices**:
+
+- 08:00 **Albert Heijn** (bonus)
+- 08:05 **Lidl** (Netherlands), including Lidl Plus prices and the offers that
+  start on Thursday
 
 It runs as a Docker Compose stack on a home server. The image is published to
 Docker Hub as `takecharge/grocery-assistant`.
@@ -13,18 +16,25 @@ Docker Hub as `takecharge/grocery-assistant`.
 - One long-running container (`grocery-assistant serve`). APScheduler runs each
   query from `config/queries.yaml` on its cron schedule, in the container's
   `TZ` (Europe/Amsterdam).
-- A query searches the **AH app API** (`api.ah.nl`, the API the Appie app uses)
-  with an anonymous token, per top-level category, for bonus products. It keeps
-  in-store (`NATIONAL`) offers that are valid today, and only products whose
-  `mainCategory` matches the query.
+- **Albert Heijn:** the query searches the **AH app API** (`api.ah.nl`, the
+  API the Appie app uses) with an anonymous token, per top-level category, for
+  bonus products. It keeps in-store (`NATIONAL`) offers.
+- **Lidl:** the query reads the public offers page
+  (`lidl.nl/c/aanbiedingen/a10008785`, allowed by robots.txt). Every product
+  tile carries its data as JSON in a `data-grid-data` attribute: price, Lidl
+  Plus price, in-store start and end date, category. One request per run.
+- Each store's data is mapped to one `Offer` model. The query keeps offers in
+  its categories (`match`) and date window (`window: day` = valid on the run
+  date, `week` = running at some point in the next 7 days).
 - The result is posted as Markdown to a Mattermost **incoming webhook**, split
   into several posts if it is longer than Mattermost allows.
 - If fetching fails, the error is posted to the same webhook and logged. The
   scheduler keeps running.
 
-The AH API is undocumented and can change without notice. ah.nl itself refuses
-automated requests (HTTP 403). Responses are validated with pydantic, so a
-changed field fails loudly instead of producing a wrong list.
+The AH API is undocumented and can change without notice; ah.nl itself refuses
+automated requests (HTTP 403). The Lidl page layout can change too. Both are
+validated with pydantic, and a Lidl page without product tiles raises an error,
+so a change fails loudly instead of producing a wrong or empty list.
 
 ## Layout
 
@@ -32,7 +42,8 @@ changed field fails loudly instead of producing a wrong list.
 | --- | --- |
 | `config/queries.yaml` | The scheduled queries (name, title, store, schedule, webhook, categories) |
 | `src/grocery_assistant/stores/ah.py` | AH API client: token, per-category bonus search |
-| `src/grocery_assistant/models.py` | pydantic `Product` |
+| `src/grocery_assistant/stores/lidl.py` | Lidl offers page: fetch and parse the product tiles |
+| `src/grocery_assistant/models.py` | `Offer` (store-neutral) and the AH `Product` |
 | `src/grocery_assistant/runner.py` | Runs a query: fetch, filter, format, post |
 | `src/grocery_assistant/formatters.py` | Markdown and post splitting |
 | `src/grocery_assistant/notify.py` | Mattermost webhook |

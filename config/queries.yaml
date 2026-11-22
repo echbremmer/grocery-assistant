@@ -3,14 +3,20 @@
 #
 #   name      unique id, used by `grocery-assistant run <name>`
 #   title     heading of the post; {week} is replaced by the ISO week number
-#   store     only "ah" (Albert Heijn) for now
-#   schedule  cron expression: minute hour day month weekday
+#   store     "ah" (Albert Heijn) or "lidl" (Lidl Netherlands)
+#   schedule  cron expression: minute hour day month weekday (1 = Monday)
 #   webhook   name of the webhook; its URL comes from the environment variable
 #             MATTERMOST_WEBHOOK_<NAME IN UPPER CASE> (kept out of git, in .env)
-#   in_store_only  true = only in-store (NATIONAL) bonus, no online-only deals
-#   categories     AH top-level category: id (taxonomyId), main_category (the
-#                  API's mainCategory value, used to drop neighbouring products)
-#                  and label (heading in the post). Order = order in the post.
+#   window    day  = offers valid on the run date (default)
+#             week = offers running at any point in the 7 days from the run
+#                    date; offers that start later show "vanaf <day>"
+#   in_store_only  AH: true = only the in-store (NATIONAL) bonus, no online deals
+#   categories     sections of the post, in this order:
+#                  label  heading in the post
+#                  match  the store's category names that go in this section
+#                         (AH: mainCategory; Lidl: the category after the
+#                         department, e.g. "Vlees & gevogelte")
+#                  id     AH only: top-level category (taxonomyId) to search
 
 queries:
   - name: ah-meat-fish-meals
@@ -20,10 +26,26 @@ queries:
     webhook: supermarket_prices
     in_store_only: true
     categories:
-      - { id: 9344, main_category: "Vlees", label: "Meat" }
-      - { id: 5481, main_category: "Vleeswaren", label: "Cold cuts" }
-      - { id: 1651, main_category: "Vis", label: "Fish" }
-      - { id: 1301, main_category: "Maaltijden, salades", label: "Ready meals & salads" }
+      - { label: "Meat", id: 9344, match: ["Vlees"] }
+      - { label: "Cold cuts", id: 5481, match: ["Vleeswaren"] }
+      - { label: "Fish", id: 1651, match: ["Vis"] }
+      - { label: "Ready meals & salads", id: 1301, match: ["Maaltijden, salades"] }
+
+  - name: lidl-meat-fish-meals
+    title: "Lidl week {week}: meat, fish & ready meals"
+    store: lidl
+    schedule: "5 8 * * 1"   # Monday 08:05, after the AH post
+    webhook: supermarket_prices
+    window: week            # include the offers that start on Thursday
+    categories:
+      - { label: "Meat & cold cuts", match: ["Vlees & gevogelte"] }
+      - { label: "Fish", match: ["Vis & zeevruchten"] }
+      - { label: "Ready meals", match: ["Kant-en-klaarmaaltijden"] }
 
 # Other AH top-level category ids found so far:
 #   6401 Groente, aardappelen · 20885 Fruit, verse sappen · 1043 Koffie, thee · 1192 Kaas
+# Lidl categories seen (department "Eten en dichtbij voedsel"):
+#   Groenten & fruit · Bakkerij · Dranken · Vlees & gevogelte ·
+#   Diepvriesvoeding (Diepvriesvoeding) · Kaas, zuivelproducten & eieren ·
+#   Snoep & snacks · Kant-en-klaarmaaltijden · Vis & zeevruchten ·
+#   Oliën, kruiden & sauzen · Voedselvoorraad · Huishouding

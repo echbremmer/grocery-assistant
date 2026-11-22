@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,19 +18,28 @@ class Settings(BaseSettings):
 
 
 class Category(BaseModel):
-    id: int
-    main_category: str
-    label: str
+    label: str  # section heading in the post
+    match: list[str]  # the store's category names that belong in this section
+    id: int | None = None  # AH only: top-level taxonomyId to search
 
 
 class Query(BaseModel):
     name: str
     title: str
-    store: Literal["ah"] = "ah"
+    store: Literal["ah", "lidl"]
     schedule: str
     webhook: str
-    in_store_only: bool = True
+    # day: offers valid on the run date. week: offers running at any point in the
+    # 7 days from the run date (Lidl's Thursday offers on a Monday run).
+    window: Literal["day", "week"] = "day"
+    in_store_only: bool = True  # AH: only the in-store (NATIONAL) bonus
     categories: list[Category]
+
+    @model_validator(mode="after")
+    def _ah_needs_ids(self) -> "Query":
+        if self.store == "ah" and any(c.id is None for c in self.categories):
+            raise ValueError(f"{self.name}: every AH category needs an id (taxonomyId)")
+        return self
 
 
 class QueryFile(BaseModel):
