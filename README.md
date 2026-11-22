@@ -80,10 +80,10 @@ To release, push a version tag:
 git tag v0.2.0 && git push origin v0.2.0
 ```
 
-That publishes `takecharge/grocery-assistant:0.2.0` and commits the new tag
+That publishes `takecharge/grocery-assistant:0.1.0` and commits the new tag
 into `compose.example.yml` and this README on `main`.
 
-The server runs a pinned version: takecharge/grocery-assistant:0.1.0. To
+The server runs a pinned version: takecharge/grocery-assistant:0.1.0 To
 upgrade, change the tag in the stack's `docker-compose.yml` and run
 `docker compose up -d`. Nothing deploys by itself.
 
