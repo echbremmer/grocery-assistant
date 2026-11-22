@@ -49,7 +49,7 @@ Environment (in the stack's `.env`, never in git):
 
 | Variable | Meaning |
 | --- | --- |
-| `MATTERMOST_WEBHOOK_<NAME>` | Webhook URL for the `webhook: <name>` used in a query, e.g. `MATTERMOST_WEBHOOK_SUPERMARKET_PRICES`. Use `http://mattermost:8065/hooks/<id>` (container network) |
+| `MATTERMOST_WEBHOOK_<NAME>` | Webhook URL for the `webhook: <name>` used in a query, e.g. `MATTERMOST_WEBHOOK_SUPERMARKET_PRICES`. Use the full URL Mattermost shows, e.g. `https://mattermost.example.com/hooks/<id>` |
 | `TZ` | Timezone for the schedules (from `defaults.env`) |
 | `GA_LOG_LEVEL` | Default `INFO` |
 | `GA_CONFIG` | Path of the queries file; the image sets `/app/config/queries.yaml` |

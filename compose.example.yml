@@ -15,15 +15,9 @@ services:
       - ALL
     env_file:
       - ../defaults.env   # TZ
-      - .env              # MATTERMOST_WEBHOOK_<NAME>=http://mattermost:8065/hooks/<id>
+      - .env              # MATTERMOST_WEBHOOK_<NAME>=https://<mattermost host>/hooks/<id>
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - gateway-net       # to reach the mattermost container directly
-
-networks:
-  gateway-net:
-    external: true
