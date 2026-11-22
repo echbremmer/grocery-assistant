@@ -1,11 +1,11 @@
-# Example stack. The live copy is /mnt/stacks/grocery-assistant/docker-compose.yml,
-# with this repo cloned into ./src next to it.
+# Example stack. The live copy is /mnt/stacks/grocery-assistant/docker-compose.yml.
+# The image is built by GitHub Actions and published to Docker Hub; pushing a
+# tag vX.Y.Z bumps the tag below. To upgrade, change the tag in the live copy
+# and run: docker compose up -d
 services:
   grocery-assistant:
     container_name: grocery-assistant
-    build: ./src
-    image: grocery-assistant:local
-    pull_policy: build    # never pulled; the nightly "compose pull" skips it
+    image: takecharge/grocery-assistant:0.1.0
     restart: unless-stopped
     user: "568:568"
     read_only: true

@@ -5,7 +5,8 @@ query so far: every Monday at 08:00, this week's **in-store Albert Heijn bonus**
 for meat, cold cuts, fish and ready meals goes to the channel
 **Supermarket prices**.
 
-It runs as a Docker stack on doggo: `/mnt/stacks/grocery-assistant`.
+It runs as a Docker Compose stack on a home server. The image is published to
+Docker Hub as `takecharge/grocery-assistant`.
 
 ## How it works
 
@@ -39,7 +40,8 @@ changed field fails loudly instead of producing a wrong list.
 | `src/grocery_assistant/cli.py` | `serve`, `run <query> [--dry-run] [--date]`, `list` |
 | `tests/` | pytest with recorded API responses, no network |
 | `Dockerfile` | Multi-stage build with uv; runs as `568:568` |
-| `compose.example.yml` | The stack definition, as used on doggo |
+| `compose.example.yml` | The stack definition |
+| `.github/workflows/publish.yml` | Tests, then builds and pushes the image to Docker Hub |
 
 ## Configuration
 
@@ -66,18 +68,27 @@ docker compose exec grocery-assistant grocery-assistant run ah-meat-fish-meals  
 docker compose logs -f
 ```
 
-## Deploy
+## Release and deploy
 
-The live clone is `/mnt/stacks/grocery-assistant/src` (pulls with a read-only
-Forgejo token). Nothing deploys automatically:
+GitHub Actions (`.github/workflows/publish.yml`) runs the tests on every push
+and pull request. On a push to `main` it publishes
+`takecharge/grocery-assistant:latest` and `:<short sha>`.
+
+To release, push a version tag:
 
 ```sh
-git -C /mnt/stacks/grocery-assistant/src pull
-cd /mnt/stacks/grocery-assistant && docker compose up -d --build
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
-The nightly stack update only pulls images, so it never rebuilds this one. Add
-`--pull` to the build now and then to pick up base-image patches.
+That publishes `takecharge/grocery-assistant:0.2.0` and commits the new tag
+into `compose.example.yml` and this README on `main`.
+
+The server runs a pinned version: takecharge/grocery-assistant:0.1.0. To
+upgrade, change the tag in the stack's `docker-compose.yml` and run
+`docker compose up -d`. Nothing deploys by itself.
+
+Repository secrets: `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (a Docker Hub
+access token with read and write access).
 
 ## Development
 
